@@ -59,6 +59,8 @@ def get_closest_nodes(doc_id):
 
 all_docs = index.docstore.docs.keys()
 
+MAX_DOCS = 2000
+
 # write an HTML file containing a table with all docs and their respective links
 # column one is the document content, column two are the links to other docs
 # in each line, add an anchor for the doc_id for that row.
@@ -69,7 +71,7 @@ def gen_doc_links():
         nodes = get_closest_nodes(doc_id)
         yield doc_id, nodes
         i += 1
-        if i > 10:
+        if i > MAX_DOCS:
             break
 
 # import a markdown to html converter
@@ -77,7 +79,6 @@ from markdown import markdown
 
 
 def gen_doc_links_html():
-    import pdb; pdb.set_trace()
     for doc_id, nodes in gen_doc_links():
         logging.info("Generating HTML for %s", doc_id)
         node_links = []
@@ -86,7 +87,9 @@ def gen_doc_links_html():
             node_links.append(f'<a href="#{node.id_}">{node.id_}</a>')
         text = index.docstore.get_node(doc_id).text
         markdown_text = markdown(text)
-        yield f'<tr><td id="{doc_id}">{markdown_text}</td><td>{", ".join(node_links)}</td></tr>'
+        #yield f'<tr><td id="{doc_id}">{markdown_text}</td><td>{", ".join(node_links)}</td></tr>'
+        # if people go to #doc_id they should scroll to this row
+        yield f'<tr><td><a id="{doc_id}"></a>{markdown_text}</td><td>{", ".join(node_links)}</td></tr>'
         
 
 links_html = "".join(gen_doc_links_html())
